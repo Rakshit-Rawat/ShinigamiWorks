@@ -62,8 +62,7 @@ const HeroSection = ({ scrollX, background }: HeroSectionProps) => {
 };
 
 const SubSection = ({
-  title,
-  sectionNumber,
+  
   isBottom,
   imageUrl,
 }: SubSectionProps) => (
