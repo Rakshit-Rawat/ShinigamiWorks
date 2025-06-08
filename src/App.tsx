@@ -1,10 +1,15 @@
 import { useRef, useState, useEffect } from "react";
-import { motion, useScroll, useTransform, MotionValue } from "framer-motion";
-
+import {
+  motion,
+  useScroll,
+  useTransform,
+  MotionValue,
+  useSpring,
+} from "framer-motion";
 import Navbar from "./Navbar";
 
 type HeroSectionProps = {
-  scrollYProgress: MotionValue<number>;
+  scrollX: MotionValue<number>;
   background: string;
 };
 
@@ -15,38 +20,40 @@ type SubSectionProps = {
   imageUrl?: string;
 };
 
-const HeroSection = ({ scrollYProgress, background }: HeroSectionProps) => {
-  const x1 = useTransform(scrollYProgress, [0, 0.2], [0, -200]);
-  const x2 = useTransform(scrollYProgress, [0, 0.25], [0, -250]);
+const HeroSection = ({ scrollX, background }: HeroSectionProps) => {
+  const headingX1 = useTransform(scrollX, [0, -2000], [0, -300]);
+  const headingX2 = useTransform(scrollX, [0, -2000], [0, -400]);
 
   return (
-    <div className="relative h-full w-full text-8xl font-bold overflow-hidden">
+    <div className="relative h-full w-full overflow-hidden text-8xl font-bold mix-blend-difference">
       <motion.h1
-        style={{ x: x1 }}
+        style={{ x: headingX1 }}
         className="absolute left-[30%] top-28 z-10 text-[#fcfaf5] mix-blend-difference"
       >
         CONVERSE
       </motion.h1>
       <motion.h1
-        style={{ x: x2 }}
+        style={{ x: headingX2 }}
         className="absolute left-[40%] top-[25%] z-10 text-[#fcfaf5] mix-blend-difference"
       >
         ANIKET RANA
       </motion.h1>
-      <div className="flex h-full w-full" style={{ transform: 'translateZ(0)' }}>
-        {/* Added overflow-hidden to both sides */}
-        <div className="w-[46%] bg-[url('/photo.jpg')] bg-cover overflow-hidden" style={{ transform: 'translateZ(0)' }}></div>
-        <div className="w-[54%] relative bg-white overflow-hidden" style={{ transform: 'translateZ(0)' }}>
+      <div
+        className="flex h-full w-full"
+        style={{ transform: "translateZ(0)" }}
+      >
+        <div className="w-[46%] overflow-hidden bg-[url('/photo.jpg')] bg-cover"></div>
+        <div className="relative w-[54%] overflow-hidden bg-white">
           <motion.div
             className="absolute inset-0 bg-black"
             initial={false}
-            animate={{ 
-              y: background === "dark" ? "-100%" : "0%"
+            animate={{
+              y: background === "dark" ? "-100%" : "0%",
             }}
-            transition={{ 
-              duration: 0.6, 
-              ease: [0.25, 0.1, 0.25, 1]
-            }} 
+            transition={{
+              duration: 0.6,
+              ease: [0.25, 0.1, 0.25, 1],
+            }}
           />
         </div>
       </div>
@@ -60,9 +67,9 @@ const SubSection = ({
   isBottom,
   imageUrl,
 }: SubSectionProps) => (
-  <div className="relative h-full w-full bg-white overflow-hidden">
+  <div className="relative h-full w-full overflow-hidden bg-white">
     <div
-      className={`absolute left-0 right-0 mx-auto flex h-[60%] w-[50%] flex-col items-center justify-center z-10 ${
+      className={`absolute left-0 right-0 z-10 mx-auto flex h-[60%] w-[50%] flex-col items-center justify-center ${
         isBottom ? "bottom-0" : "top-0"
       }`}
       style={{
@@ -93,7 +100,7 @@ const App = () => {
       id: index + 2,
       Component: () => (
         <SubSection
-          title={`Subsection ${index + 1}`} 
+          title={`Subsection ${index + 1}`}
           sectionNumber={index + 2}
           isBottom={index % 2 === 0}
           imageUrl={sectionImages[index % sectionImages.length]}
@@ -108,19 +115,22 @@ const App = () => {
     offset: ["start start", "end end"],
   });
 
-  const totalWidth = sections.reduce((acc, section) => acc + section.width, 0);
-  const x = useTransform(
-    scrollYProgress,
-    [0, 1],
-    ["0vw", `-${totalWidth - 100}vw`],
+  const totalScrollDistance = (totalOriginalSections - 1) * window.innerWidth;
+
+  const x = useSpring(
+    useTransform(scrollYProgress, [0, 1], [0, -totalScrollDistance]),
+    {
+      stiffness: 100,
+      damping: 30,
+      restDelta: 0.001,
+    }
   );
 
   useEffect(() => {
     const unsubscribe = scrollYProgress.on("change", (value) => {
-      const sectionWidth = 1 / totalOriginalSections;
       const sectionIndex = Math.min(
-        Math.floor(value / sectionWidth) + 1,
-        totalOriginalSections,
+        Math.floor(value * totalOriginalSections) + 1,
+        totalOriginalSections
       );
       setCurrentSection(sectionIndex);
     });
@@ -137,53 +147,44 @@ const App = () => {
           setBackground((prev) => (prev === "light" ? "dark" : "light"))
         }
       />
-
       <div
         ref={containerRef}
         style={{ height: `${totalOriginalSections * 100}vh` }}
+        className="hide-vertical-scrollbar"
       >
-        {/* Added overflow-hidden to the sticky container */}
         <div className="sticky top-0 h-screen overflow-hidden">
-          {/* Added will-change-transform for better rendering */}
-          <motion.div 
-            style={{ x }} 
-            className="flex h-full w-full relative will-change-transform"
+          <motion.div
+            style={{ x, transformStyle: "preserve-3d" }}
+            className="relative flex h-full w-full gap-0 will-change-transform"
           >
             {sections.map((section) => {
               const { Component } = section;
               return (
-                // Added overflow-hidden to each section container
                 <div
                   key={section.id}
                   className="h-full flex-shrink-0 overflow-hidden"
-                  style={{ width: `${section.width}vw` }}
+                  style={{ width: "100.1vw" }}
                 >
-                  <Component
-                    scrollYProgress={scrollYProgress}
-                    background={background}
-                  />
+                  <Component scrollX={x} background={background} />
                 </div>
               );
             })}
-            
-            {/* Enhanced overlay with precise positioning */}
             <motion.div
-              className="absolute top-0 bg-black pointer-events-none"
+              className="pointer-events-none absolute top-0 bg-black"
               style={{
                 left: "100vw",
                 width: `${(totalOriginalSections - 1) * 100}vw`,
                 height: "100%",
-                // Ensure perfect alignment with sections
-                transform: 'translate3d(0,0,0)',
-                backfaceVisibility: 'hidden'
+                transform: "translate3d(0,0,0)",
+                backfaceVisibility: "hidden",
               }}
               initial={false}
-              animate={{ 
-                y: background === "dark" ? "-100%" : "0%"
+              animate={{
+                y: background === "dark" ? "-100%" : "0%",
               }}
-              transition={{ 
-                duration: 0.6, 
-                ease: [0.25, 0.1, 0.25, 1]
+              transition={{
+                duration: 0.6,
+                ease: [0.25, 0.1, 0.25, 1],
               }}
             />
           </motion.div>
