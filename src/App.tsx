@@ -36,7 +36,7 @@ const HeroSection = ({ scrollX, background }: HeroSectionProps) => {
         style={{ x: headingX2 }}
         className="absolute left-[40%] top-[25%] z-10 text-[#fcfaf5] mix-blend-difference"
       >
-        ANIKET RANA
+        ShinigamiWorks
       </motion.h1>
       <div
         className="flex h-full w-full"
@@ -61,11 +61,7 @@ const HeroSection = ({ scrollX, background }: HeroSectionProps) => {
   );
 };
 
-const SubSection = ({
-  
-  isBottom,
-  imageUrl,
-}: SubSectionProps) => (
+const SubSection = ({ isBottom, imageUrl }: SubSectionProps) => (
   <div className="relative h-full w-full overflow-hidden bg-white">
     <div
       className={`absolute left-0 right-0 z-10 mx-auto flex h-[60%] w-[50%] flex-col items-center justify-center ${
@@ -84,6 +80,7 @@ const SubSection = ({
 const App = () => {
   const [currentSection, setCurrentSection] = useState(1);
   const [background, setBackground] = useState<"light" | "dark">("light");
+  const [contrastNumber, setContrastNumber] = useState<number>(24);
   const totalOriginalSections = 13;
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -122,14 +119,14 @@ const App = () => {
       stiffness: 100,
       damping: 30,
       restDelta: 0.001,
-    }
+    },
   );
 
   useEffect(() => {
     const unsubscribe = scrollYProgress.on("change", (value) => {
       const sectionIndex = Math.min(
         Math.floor(value * totalOriginalSections) + 1,
-        totalOriginalSections
+        totalOriginalSections,
       );
       setCurrentSection(sectionIndex);
     });
@@ -137,15 +134,27 @@ const App = () => {
     return () => unsubscribe();
   }, [scrollYProgress, totalOriginalSections]);
 
+  const toggleBackgroundAndContrast = () => {
+    setBackground((prev) => {
+      const newBg = prev === "light" ? "dark" : "light";
+      if (newBg === "light") {
+        setContrastNumber(24);
+      } else {
+        setContrastNumber(1.4);
+      }
+      return newBg;
+    });
+  };
+
+  
+
   return (
-    <div className="relative">
+    <div className="font-bokor relative">
       <Navbar
         currentSection={currentSection}
         totalOriginalSections={totalOriginalSections}
-        onToggleBackground={() =>
-          setBackground((prev) => (prev === "light" ? "dark" : "light"))
-        }
-      />
+        onToggleBackground={toggleBackgroundAndContrast}
+        contrastNumber={contrastNumber}      />
       <div
         ref={containerRef}
         style={{ height: `${totalOriginalSections * 100}vh` }}

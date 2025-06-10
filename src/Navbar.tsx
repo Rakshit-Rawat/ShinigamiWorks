@@ -1,14 +1,32 @@
 import React, { useEffect, useRef } from "react";
 import AnimatedClock from "./components/AnimatedClock";
 import { SmartNumber } from "./components/AnimatedClock";
+import { NavLink } from "react-router";
 
 type NavbarProps = {
   currentSection: number;
   totalOriginalSections?: number;
-  onToggleBackground?:()=>void 
+  onToggleBackground?: () => void;
+  contrastNumber: number;
 };
 
-const Navbar: React.FC<NavbarProps> = ({ currentSection, totalOriginalSections = 5, onToggleBackground }) => {
+type navItems = {
+  title: string;
+  href: string;
+};
+
+const Navbar: React.FC<NavbarProps> = ({
+  currentSection,
+  totalOriginalSections = 5,
+  onToggleBackground,
+  contrastNumber,
+}) => {
+  const navItems: navItems[] = [
+    { title: "INDEX", href: "/index" },
+    { title: "ABOUT", href: "/about" },
+    { title: "CONTACT", href: "/contact" },
+  ];
+
   const previousSectionRef = useRef(currentSection);
   const previousTotalRef = useRef(totalOriginalSections);
 
@@ -22,7 +40,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentSection, totalOriginalSections =
 
   const previousSection = previousSectionRef.current;
   const previousTotal = previousTotalRef.current;
-  
+
   const FullscreenButton = () => (
     <button
       className="relative h-5 w-5 transition-opacity"
@@ -75,11 +93,11 @@ const Navbar: React.FC<NavbarProps> = ({ currentSection, totalOriginalSections =
 
             {/* Center Right Nav */}
             <div className="flex items-center gap-x-16 uppercase">
-              <div className="flex items-start gap-x-1">
+              <div className="flex shrink-0 items-start gap-x-1">
                 <span className="cursor-pointer transition-opacity">WORK</span>
                 <sup className="text-xs opacity-40">(24)</sup>
               </div>
-              <div className="flex items-start gap-x-1">
+              <div className="flex shrink-0 items-start gap-x-1">
                 <span className="cursor-pointer transition-opacity">
                   INSPIRED
                 </span>
@@ -88,16 +106,28 @@ const Navbar: React.FC<NavbarProps> = ({ currentSection, totalOriginalSections =
             </div>
 
             {/* Right Section */}
-            <div className="flex items-center gap-x-12 uppercase">
-              <button className="font-mono tabular-nums" onClick={onToggleBackground}>F/1.4</button>
-              <div className="flex gap-x-8">
-                {["INDEX", "ABOUT", "CONTACT"].map((text) => (
-                  <span
-                    key={text}
-                    className="cursor-pointer opacity-60 transition-opacity"
+            <div className="flex shrink-0 items-center gap-x-12 uppercase">
+              <button
+                className="flex shrink-0 items-center font-mono tabular-nums"
+                onClick={onToggleBackground}
+              >
+                <span>F/</span>
+                <div className="inline-block w-4 text-left">
+                  <SmartNumber
+                    currentValue={String(contrastNumber)}
+                    previousValue={String(contrastNumber)}
+                  />
+                </div>
+              </button>
+              <div className="flex shrink-0 gap-x-8">
+                {navItems.map((item, idx) => (
+                  <NavLink
+                    to={item.href}
+                    key={idx}
+                    className="cursor-pointer whitespace-nowrap opacity-60 transition-opacity"
                   >
-                    {text}
-                  </span>
+                    {item.title}
+                  </NavLink>
                 ))}
               </div>
             </div>

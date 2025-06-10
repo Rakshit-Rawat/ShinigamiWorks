@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 
+
 // Component for individual digit with number flow animation
 export const FlowDigit = ({ digit, direction = "up" }: { digit: string, direction?: "up" | "down" }) => (
   <div className="relative w-4 h-6 flex items-center justify-center overflow-hidden">
